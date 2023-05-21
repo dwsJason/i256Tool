@@ -321,6 +321,8 @@ void I256File::SaveToFile(const char* pFilenamePath)
 
 		pTMAP->t = 'T'; pTMAP->m = 'M'; pTMAP->a = 'A'; pTMAP->p = 'P';
 		pTMAP->chunk_length = 0; // Temporary Chunk Size
+		pTMAP->width = m_widthTiles;
+		pTMAP->height = m_heightTiles;
 
 		size_t decompressed_size = (m_widthTiles * m_heightTiles * 2);
 
