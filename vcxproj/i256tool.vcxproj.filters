@@ -88,6 +88,12 @@
     <ClInclude Include="..\source\stm_file.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\txtfile.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\memstream.h">
+      <Filter>source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\i256file.cpp">
@@ -151,6 +157,9 @@
       <Filter>libs\lzsa\libdivsufsort\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\source\stm_file.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\txtfile.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

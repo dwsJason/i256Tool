@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string>
 
+#include "bctypes.h"
+#include "txtfile.h"
 #include "i256file.h"
 #include "stm_file.h"
 
@@ -112,11 +114,10 @@ static bool endsWith(const std::string& S, const std::string& SUFFIX)
 }
 //------------------------------------------------------------------------------
 
-
 int main(int argc, char* argv[])
 {
-	char* pInfilePath  = nullptr;
-	char* pOutfilePath = nullptr;
+	char* pWorkDirectory = nullptr;
+	char* pBaseFileName = nullptr;
 
 	if (argc < 2) helpText();
 
@@ -128,15 +129,15 @@ int main(int argc, char* argv[])
 		{
 			// Parse as an option
 		}
-		else if (nullptr == pInfilePath)
+		else if (nullptr == pWorkDirectory)
 		{
-			// Assume the first non-option is an input file path
-			pInfilePath = argv[ idx ];
+			// Assume the first non-option is working directory
+			pWorkDirectory = argv[ idx ];
 		}
-		else if (nullptr == pOutfilePath)
+		else if (nullptr == pBaseFileName)
 		{
-			// Assume second non-option is an output file path
-			pOutfilePath = argv[ idx ];
+			// Assume second non-option is base filename
+			pBaseFileName = argv[ idx ];
 		}
 		else
 		{
@@ -147,14 +148,59 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (pInfilePath)
+	if (pWorkDirectory && pBaseFileName)
 	{
-		// See what we can do with the input file path
-		// could be a .gsla file, for a .c2 file, or maybe a series of .c1 files
-		if (endsWith(pInfilePath, ".txt"))
+
+		std::string pathFileList = pWorkDirectory;
+		pathFileList = pathFileList + "\\" + pBaseFileName + ".filelist.txt";
+
+		// It's a txt file, hopefully one from Promotion, with a file list
+		TXTFile text_file(pathFileList.c_str());
+
+		const std::vector<std::string>& lines = text_file.GetLines();
+
+		if (lines.size()==2)
 		{
-			// It's a txt file, hopefully one from Promotion, with a file list
+			const char* pImageFile = lines[0].c_str();
+			const char* pSTMFile = lines[1].c_str();
+
+			printf("Image File = %s\n", pImageFile);
+			printf("STM File = %s\n", pSTMFile);
+
+			if (endsWith(pImageFile, ".256") && endsWith(pSTMFile, ".stm"))
+			{
+				std::string IFileName = pWorkDirectory;
+				IFileName = IFileName + "\\" + pImageFile;
+
+				I256File catalog(IFileName.c_str());
+				STMFile  mapfile(pSTMFile);
+
+				int width  = mapfile.GetWidth();
+				int height = mapfile.GetHeight();
+
+				int numEntry = width * height;
+
+				std::vector<u16> newMap;
+
+				newMap.resize(numEntry);
+
+				const std::vector<unsigned int>& sourceMap = mapfile.GetMap();
+
+				// convert from 32 bit to 16 bit, so we don't have too at runtime
+				for (int idx = 0; idx < numEntry; ++idx)
+				{
+					newMap[idx] = (u16) sourceMap[idx];
+				}
+
+				std::vector<unsigned short*> maps;
+				maps.push_back(&newMap[0]);
+
+				catalog.AddTileMaps(maps, width, height);
+
+				catalog.SaveToFile(IFileName.c_str()); // save the 256 file back out, with a TMAP section
+			}
 		}
+		
 	}
 	else
 	{

@@ -150,7 +150,9 @@
     <ClInclude Include="..\libs\lzsa\src\stream.h" />
     <ClInclude Include="..\source\bctypes.h" />
     <ClInclude Include="..\source\i256file.h" />
+    <ClInclude Include="..\source\memstream.h" />
     <ClInclude Include="..\source\stm_file.h" />
+    <ClInclude Include="..\source\txtfile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\lzsa\src\dictionary.c" />
@@ -174,6 +176,7 @@
     <ClCompile Include="..\source\i256file.cpp" />
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\stm_file.cpp" />
+    <ClCompile Include="..\source\txtfile.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

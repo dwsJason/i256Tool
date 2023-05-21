@@ -30,7 +30,7 @@ static_assert(sizeof(I256File_CHUNK)==8, "I256File_CHUNK is supposed to be 8 byt
 //------------------------------------------------------------------------------
 // Load in a I256File constructor
 //
-I256File::I256File(const wchar_t *pFilePath)
+I256File::I256File(const char *pFilePath)
 	: m_widthPixels(0)
 	, m_heightPixels(0)
 	, m_numColors( 0 )
@@ -135,7 +135,7 @@ void I256File::AddTileMaps( const std::vector<unsigned short*>& pTileMaps, unsig
 //
 // Save to File
 //
-void I256File::SaveToFile(const wchar_t* pFilenamePath)
+void I256File::SaveToFile(const char* pFilenamePath)
 {
 	// Actually, going to serialize to memory, then will save that to file
 	std::vector<unsigned char> bytes;
@@ -414,7 +414,7 @@ void I256File::SaveToFile(const wchar_t* pFilenamePath)
 	//--------------------------------------------------------------------------
 	// Create the file and write it
 	FILE* pFile = nullptr;
-	errno_t err = _wfopen_s(&pFile, pFilenamePath, L"wb");
+	errno_t err = fopen_s(&pFile, pFilenamePath, "wb");
 
 	if (0==err)
 	{
@@ -425,7 +425,7 @@ void I256File::SaveToFile(const wchar_t* pFilenamePath)
 
 //------------------------------------------------------------------------------
 
-void I256File::LoadFromFile(const wchar_t* pFilePath)
+void I256File::LoadFromFile(const char* pFilePath)
 {
 	// Free any existing memory
 	if (m_pal.pColors)
@@ -456,7 +456,7 @@ void I256File::LoadFromFile(const wchar_t* pFilePath)
 	//--------------------------------------------------------------------------
 	// Read the file into memory
 	FILE* pFile = nullptr;
-	errno_t err = _wfopen_s(&pFile, pFilePath, L"rb");
+	errno_t err = fopen_s(&pFile, pFilePath, "rb");
 
 	if (0==err)
 	{

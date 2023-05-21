@@ -158,7 +158,7 @@ public:
 	// Create a Blank Fan File
 	I256File(int iWidthPixels, int iHeightPixels, int iNumColors);
 	// Load in a I256 Image File
-	I256File(const wchar_t* pFilePath);
+	I256File(const char* pFilePath);
 
 	~I256File();
 
@@ -166,10 +166,10 @@ public:
 	void SetPalette( const I256_Palette& palette );
 	void AddImages( const std::vector<unsigned char*>& pPixelMaps );
 	void AddTileMaps( const std::vector<unsigned short*>& pTileMaps, unsigned short width, unsigned short height );
-	void SaveToFile(const wchar_t* pFilenamePath);
+	void SaveToFile(const char* pFilenamePath);
 
 	// Retrieval
-	void LoadFromFile(const wchar_t* pFilePath);
+	void LoadFromFile(const char* pFilePath);
 	int GetFrameCount() { return (int)m_pPixelMaps.size(); }
 	int GetWidth()  { return m_widthPixels; }
 	int GetHeight() { return m_heightPixels; }
