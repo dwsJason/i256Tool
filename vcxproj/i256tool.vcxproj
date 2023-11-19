@@ -24,6 +24,7 @@
     <ProjectGuid>{d6160d2d-bf86-4391-b595-c0cda60394bb}</ProjectGuid>
     <RootNamespace>i256tool</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>i256dump</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

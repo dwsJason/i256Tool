@@ -174,8 +174,12 @@ public:
 	int GetWidth()  { return m_widthPixels; }
 	int GetHeight() { return m_heightPixels; }
 
+	int GetWidthTiles() { return m_widthTiles; }
+	int GetHeightTiles() { return m_heightTiles; }
+
 	const I256_Palette& GetPalette() { return m_pal; }
 	const std::vector<unsigned char*> GetPixelMaps() { return m_pPixelMaps; }
+	const std::vector<unsigned short*> GetTileMaps() { return m_pTileMaps; }
 
 private:
 
