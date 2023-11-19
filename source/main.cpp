@@ -114,8 +114,14 @@ static bool endsWith(const std::string& S, const std::string& SUFFIX)
 }
 //------------------------------------------------------------------------------
 
+bool Debug = true;
+
 int main(int argc, char* argv[])
 {
+	//while (Debug)
+	{
+		// wait for debugger
+	}
 	char* pWorkDirectory = nullptr;
 	char* pBaseFileName = nullptr;
 
