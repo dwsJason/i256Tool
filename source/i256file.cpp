@@ -312,96 +312,99 @@ void I256File::SaveToFile(const char* pFilenamePath)
 
 	if ((m_widthTiles > 0) && (m_heightTiles>0) && (m_pTileMaps.size() > 0))
 	{
-		// Only add if it exists
-		size_t tmap_offset = bytes.size();
-
-		// Add space for the PIXL header;
-		bytes.resize( bytes.size() + sizeof(I256File_TMAP) );
-		I256File_TMAP* pTMAP = (I256File_TMAP*)&bytes[ tmap_offset ];
-
-		pTMAP->t = 'T'; pTMAP->m = 'M'; pTMAP->a = 'A'; pTMAP->p = 'P';
-		pTMAP->chunk_length = 0; // Temporary Chunk Size
-		pTMAP->width = m_widthTiles;
-		pTMAP->height = m_heightTiles;
-
-		size_t decompressed_size = (m_widthTiles * m_heightTiles * 2);
-
-		pTMAP->num_blobs = (short) (decompressed_size / 0x10000);
-
-		// Need to add an extra blob, if we're not a multiple of 65536
-		if (decompressed_size & 0xFFFF)
+		for (int tileMapIndex = 0; tileMapIndex < m_pTileMaps.size(); ++tileMapIndex)
 		{
-			pTMAP->num_blobs+=1;
-		}
+			// Only add if it exists
+			size_t tmap_offset = bytes.size();
 
-		int num_blobs = pTMAP->num_blobs;
+			// Add space for the TMAP header;
+			bytes.resize( bytes.size() + sizeof(I256File_TMAP) );
+			I256File_TMAP* pTMAP = (I256File_TMAP*)&bytes[ tmap_offset ];
 
-		// Work Buffer Guaranteed to be large enough
-		unsigned char* pWorkBuffer = new unsigned char[ lzsa_get_max_compressed_size_inmem( 65536 ) ];
-		// Grabbing just the first frame
-		unsigned char *pSourceData = (unsigned char*)m_pTileMaps[ 0 ];
+			pTMAP->t = 'T'; pTMAP->m = 'M'; pTMAP->a = 'A'; pTMAP->p = 'P';
+			pTMAP->chunk_length = 0; // Temporary Chunk Size
+			pTMAP->width = m_widthTiles;
+			pTMAP->height = m_heightTiles;
 
-		// Compressed Blobs to Follow
-		for (int idx = 0; idx < num_blobs; ++idx)
-		{
-			size_t sourceOffset = 0x10000 * idx;
-			int decompressedChunkSize = (int)(decompressed_size - sourceOffset);
+			size_t decompressed_size = (m_widthTiles * m_heightTiles * 2);
 
-			if (decompressedChunkSize > 0x10000)
+			pTMAP->num_blobs = (short) (decompressed_size / 0x10000);
+
+			// Need to add an extra blob, if we're not a multiple of 65536
+			if (decompressed_size & 0xFFFF)
 			{
-				decompressedChunkSize = 0x10000;
+				pTMAP->num_blobs+=1;
 			}
 
-			compSize = lzsa_compress_inmem(&pSourceData[ sourceOffset ],  // input
-									 pWorkBuffer,  	 					  // output
-									 decompressedChunkSize,  			  // input size
-									 lzsa_get_max_compressed_size_inmem( 65536 ),  // max output buffer size
-									 LZSA_FLAG_FAVOR_RATIO | LZSA_FLAG_RAW_BLOCK,
-									 0,						// minmatchsize (0 better for ratio)
-									 2 // Format Version
-									 );
+			int num_blobs = pTMAP->num_blobs;
 
+			// Work Buffer Guaranteed to be large enough
+			unsigned char* pWorkBuffer = new unsigned char[ lzsa_get_max_compressed_size_inmem( 65536 ) ];
+			// Grabbing just the first frame
+			unsigned char *pSourceData = (unsigned char*)m_pTileMaps[ tileMapIndex ];
 
-			if (compSize > 0)
+			// Compressed Blobs to Follow
+			for (int idx = 0; idx < num_blobs; ++idx)
 			{
-				if (compSize >= 0x10000)
-				{
-					// Signal 64K uncompressed
-					bytes.push_back( 0 );
-					bytes.push_back( 0 );
+				size_t sourceOffset = 0x10000 * idx;
+				int decompressedChunkSize = (int)(decompressed_size - sourceOffset);
 
-					for (int uncompressedIdx = 0; uncompressedIdx < 0x10000; ++uncompressedIdx)
+				if (decompressedChunkSize > 0x10000)
+				{
+					decompressedChunkSize = 0x10000;
+				}
+
+				compSize = lzsa_compress_inmem(&pSourceData[ sourceOffset ],  // input
+										 pWorkBuffer,  	 					  // output
+										 decompressedChunkSize,  			  // input size
+										 lzsa_get_max_compressed_size_inmem( 65536 ),  // max output buffer size
+										 LZSA_FLAG_FAVOR_RATIO | LZSA_FLAG_RAW_BLOCK,
+										 0,						// minmatchsize (0 better for ratio)
+										 2 // Format Version
+										 );
+
+
+				if (compSize > 0)
+				{
+					if (compSize >= 0x10000)
 					{
-						bytes.push_back((unsigned char) pSourceData[ sourceOffset + uncompressedIdx ]);
+						// Signal 64K uncompressed
+						bytes.push_back( 0 );
+						bytes.push_back( 0 );
+
+						for (int uncompressedIdx = 0; uncompressedIdx < 0x10000; ++uncompressedIdx)
+						{
+							bytes.push_back((unsigned char) pSourceData[ sourceOffset + uncompressedIdx ]);
+						}
+
+					}
+					else
+					{
+						// Add the blob
+						bytes.push_back( (compSize>>0) & 0xFF );
+						bytes.push_back( (compSize>>8) & 0xFF );
+
+						// is this fast?  Probably not
+						for (int compressedIndex = 0; compressedIndex < compSize; ++compressedIndex)
+						{
+							bytes.push_back((unsigned char)pWorkBuffer[ compressedIndex ]);
+						}
 					}
 
 				}
 				else
 				{
-					// Add the blob
-					bytes.push_back( (compSize>>0) & 0xFF );
-					bytes.push_back( (compSize>>8) & 0xFF );
-
-					// is this fast?  Probably not
-					for (int compressedIndex = 0; compressedIndex < compSize; ++compressedIndex)
-					{
-						bytes.push_back((unsigned char)pWorkBuffer[ compressedIndex ]);
-					}
+					// FAILED TO COMPRESS
+					printf("FAILED TO COMPRESS\n");
+					exit(-1);
+					return; // just stop
 				}
+			}
 
-			}
-			else
-			{
-				// FAILED TO COMPRESS
-				printf("FAILED TO COMPRESS\n");
-				exit(-1);
-				return; // just stop
-			}
+			// Update the chunk length
+			pTMAP = (I256File_TMAP*)&bytes[ tmap_offset ];
+			pTMAP->chunk_length = (unsigned int) (bytes.size() - tmap_offset);
 		}
-
-		// Update the chunk length
-		pTMAP = (I256File_TMAP*)&bytes[ tmap_offset ];
-		pTMAP->chunk_length = (unsigned int) (bytes.size() - tmap_offset);
 
 	}
 

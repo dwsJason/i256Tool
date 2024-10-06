@@ -14,7 +14,7 @@
 //------------------------------------------------------------------------------
 static void helpText()
 {
-	printf("i256Tool - v0.1\n");
+	printf("i256Tool - v0.2\n");
 	printf("--------------\n");
 	printf("I256Tool for manipulating I256 files\n");
 	printf("\n");
@@ -165,45 +165,54 @@ int main(int argc, char* argv[])
 
 		const std::vector<std::string>& lines = text_file.GetLines();
 
-		if (lines.size()==2)
+		if (lines.size()>=2)
 		{
 			const char* pImageFile = lines[0].c_str();
 			const char* pSTMFile = lines[1].c_str();
-
-			printf("Image File = %s\n", pImageFile);
-			printf("STM File = %s\n", pSTMFile);
 
 			if (endsWith(pImageFile, ".256") && endsWith(pSTMFile, ".stm"))
 			{
 				std::string IFileName = pWorkDirectory;
 				IFileName = IFileName + "\\" + pImageFile;
 
+				printf("Image File = %s\n", pImageFile);
+
 				I256File catalog(IFileName.c_str());
-				STMFile  mapfile(pSTMFile);
+				std::vector<unsigned short*> maps;
 
-				int width  = mapfile.GetWidth();
-				int height = mapfile.GetHeight();
+				int width = 0;
+				int height = 0;
 
-				int numEntry = width * height;
-
-				std::vector<u16> newMap;
-
-				newMap.resize(numEntry);
-
-				const std::vector<unsigned int>& sourceMap = mapfile.GetMap();
-
-				// convert from 32 bit to 16 bit, so we don't have too at runtime
-				for (int idx = 0; idx < numEntry; ++idx)
+				for (int mapIndex = 1; mapIndex < lines.size(); ++mapIndex)
 				{
-					newMap[idx] = (u16) sourceMap[idx];
+					pSTMFile = lines[ mapIndex ].c_str();
+					STMFile  mapfile(pSTMFile);
+
+					printf("STM File[%d] = %s\n", mapIndex, pSTMFile);
+
+					width  = mapfile.GetWidth();
+					height = mapfile.GetHeight();
+
+					int numEntry = width * height;
+
+					std::vector<u16> newMap;
+
+					newMap.resize(numEntry);
+
+					const std::vector<unsigned int>& sourceMap = mapfile.GetMap();
+
+					// convert from 32 bit to 16 bit, so we don't have too at runtime
+					for (int idx = 0; idx < numEntry; ++idx)
+					{
+						newMap[idx] = (u16) sourceMap[idx];
+					}
+
+					maps.push_back(&newMap[0]);
 				}
 
-				std::vector<unsigned short*> maps;
-				maps.push_back(&newMap[0]);
-
 				catalog.AddTileMaps(maps, width, height);
-
 				catalog.SaveToFile(IFileName.c_str()); // save the 256 file back out, with a TMAP section
+
 			}
 		}
 		
